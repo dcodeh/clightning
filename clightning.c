@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <ncurses.h>
+#include <stdlib.h>
+#include <time.h>
 
 int main(int argc, char **argv) {
 	// Enter curses mode
@@ -16,10 +18,11 @@ int main(int argc, char **argv) {
 	getmaxyx(stdscr, y, x);
 
 	char canvas[x][y];
+	srand(time(NULL));
 
 	for (int i = 0; i < x; ++i) {
 		for (int j = 0; j < y; ++j) {
-			canvas[i][j] = '@';
+			canvas[i][j] = (char) (rand() % ('~' - ' ') + ' ');
 		}
 	}
 
