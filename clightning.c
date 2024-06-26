@@ -15,11 +15,24 @@ int main(int argc, char **argv) {
 	int x, y;
 	getmaxyx(stdscr, y, x);
 
-	attron(A_BOLD);
-	printw("LIGHTNING");
+	char canvas[x][y];
 
-	// Print window size in the center
-	mvprintw(y / 2, x / 2, "%d x %d", x, y);
+	for (int i = 0; i < x; ++i) {
+		for (int j = 0; j < y; ++j) {
+			canvas[i][j] = '@';
+		}
+	}
+
+	// Go home
+	move(0, 0);
+
+	for (int i = 0; i < x; ++i) {
+		for (int j = 0; j < y; ++j) {
+			addch(canvas[i][j]);
+		}
+	}
+
+	attron(A_BOLD);
 	refresh();
 
 	getch();
