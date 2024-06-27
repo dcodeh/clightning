@@ -4,4 +4,8 @@ Flashes of lightning on your CLI
 
 # TODO
 
-- [ ] Build something simple with ncurses
+- [x] Build something simple with ncurses
+- [ ] Build single frame lightning bolts
+- [ ] Add glowing
+- [ ] Add clouds
+- [ ] Add animation
