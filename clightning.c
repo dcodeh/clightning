@@ -4,19 +4,13 @@
 #include <time.h>
 #include <string.h>
 
+
+
 static const char lightning_chars[] = {
 	'_',
 	'\\',
 	'/',
 	'|',
-	'A',
-	'Y',
-	'%',
-	'+',
-	'=',
-	'-',
-	'X',
-	'Z',
 };
 
 size_t num_chars = sizeof(lightning_chars) / sizeof(char); // TODO DCB marcro for this?
@@ -45,43 +39,38 @@ int main(int argc, char **argv) {
 	srand(time(NULL));
 
 	// generate a cool looking lightning bolt of a certain length
-	int chars = rand() % (x * 2);
+	int chars = rand() % (x / 2);
 
 	// pick a random spot to start in the middle 50% of the window
 	int x0 = (x / 4) + (rand() % (x / 2));
 	int y0 = (y / 4) + (rand() % (y / 2));
 
-	for (int i = 0; i < chars; ++i) {
+	while (chars-- > 0) {
 		char c = rndchar();
-		canvas[x0][y0] = c;
+		int len = (rand() % 10) + 1;
 
-		switch (c) {
-			case '=':
-			case '-':
-			case '_':
-				x0++;
-				break;
-			case '%':
-			case '\\':
-				x0++;
-				y0++;
-				break;
-			case 'Y':
-			case 'X':
-			case 'Z':
-			case 'A':
-			case '/':
-				x0--;
-				y0++;
-				break;
-			case '+':
-			case '|':
-				y0++;
-				break;
-			default:
-				printf("what\n");
-				exit(-1);
-				break;
+		while(len--) {
+			canvas[x0][y0] = c;
+			switch (c) {
+				case '_':
+					x0++;
+					break;
+				case '\\':
+					x0++;
+					y0++;
+					break;
+				case '/':
+					x0--;
+					y0++;
+					break;
+				case '|':
+					y0++;
+					break;
+				default:
+					printf("what\n");
+					exit(-1);
+					break;
+			}
 		}
 	}
 
@@ -92,7 +81,7 @@ int main(int argc, char **argv) {
 
 	for (int i = 0; i < x; ++i) {
 		for (int j = 0; j < y; ++j) {
-			addch(canvas[i][j]);
+			mvaddch(j, i, canvas[i][j]);
 		}
 	}
 
