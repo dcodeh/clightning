@@ -39,18 +39,28 @@ int main(int argc, char **argv) {
 	srand(time(NULL));
 
 	// generate a cool looking lightning bolt of a certain length
-	int chars = rand() % (x / 2);
+	int chars = rand() % (x + y / 2);
 
 	// pick a random spot to start in the middle 50% of the window
 	int x0 = (x / 4) + (rand() % (x / 2));
 	int y0 = (y / 4) + (rand() % (y / 2));
 
-	while (chars-- > 0) {
+	while (chars > 0) {
 		char c = rndchar();
 		int len = (rand() % 10) + 1;
 
+		if (len > chars) {
+			len = chars;
+		}
+
+		chars = chars - len;
 		while(len--) {
-			canvas[x0][y0] = c;
+			if (x0 >= 0 && y0 >= 0 && y0 < y && x0 < x) {
+				canvas[x0][y0] = c;
+			} else {
+				break;
+			}
+
 			switch (c) {
 				case '_':
 					x0++;
