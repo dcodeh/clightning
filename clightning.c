@@ -4,10 +4,8 @@
 #include <time.h>
 #include <string.h>
 
-
-
 static const char lightning_chars[] = {
-	'_',
+	'-',
 	'\\',
 	'/',
 	'|',
@@ -47,7 +45,7 @@ int main(int argc, char **argv) {
 
 	while (chars > 0) {
 		char c = rndchar();
-		int len = (rand() % 10) + 1;
+		int len = (rand() % 10);
 
 		if (len > chars) {
 			len = chars;
@@ -62,7 +60,7 @@ int main(int argc, char **argv) {
 			}
 
 			switch (c) {
-				case '_':
+				case '-':
 					x0++;
 					break;
 				case '\\':
