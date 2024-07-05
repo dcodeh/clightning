@@ -18,32 +18,11 @@ char rndchar() {
 	return lightning_chars[r];
 }
 
-int main(int argc, char **argv) {
-	// Enter curses mode
-	initscr();
-
-	// Disable character buffering
-	raw();
-
-	// Disable echoing input characters that could mess up the artwork
-	noecho();
-
-	// Enquire about the size of the terminal we're dealing with
-	int x, y;
-	getmaxyx(stdscr, y, x);
-
-	char canvas[x][y];
-	memset(canvas, ' ', x * y);
-	srand(time(NULL));
-
-	// generate a cool looking lightning bolt of a certain length
-	int chars = rand() % (x + y / 2);
-
-	// pick a random spot to start in the middle 50% of the window
-	int x0 = (x / 4) + (rand() % (x / 2));
-	int y0 = (y / 4) + (rand() % (y / 2));
-
+void bolt(char **canvas, int x, int y, int chars, int x0, int y0) {
+	printf("Start: %d, %d\n", x0, y0);
 	while (chars > 0) {
+		printf("%d chars remaining\n", chars);
+
 		char c = rndchar();
 		int len = (rand() % 10);
 
@@ -51,11 +30,15 @@ int main(int argc, char **argv) {
 			len = chars;
 		}
 
+		printf("%c x %d\n", c, len);
+
 		chars = chars - len;
 		while(len--) {
 			if (x0 >= 0 && y0 >= 0 && y0 < y && x0 < x) {
 				canvas[x0][y0] = c;
+				printf(" -> %c at %d, %d\n", c, x0, y0);
 			} else {
+				printf("EEK!\n");
 				break;
 			}
 
@@ -82,6 +65,40 @@ int main(int argc, char **argv) {
 		}
 	}
 
+}
+
+int main(int argc, char **argv) {
+	// Enter curses mode
+	initscr();
+
+	// Disable character buffering
+	raw();
+
+	// Disable echoing input characters that could mess up the artwork
+	noecho();
+
+	// Enquire about the size of the terminal we're dealing with
+	int x, y;
+	getmaxyx(stdscr, y, x);
+
+	// TODO DCB clean up this hacky mess
+	char **canvas = malloc(x * sizeof(char *));
+	for (int i = 0; i < x; ++i) {
+		canvas[i] = malloc(y * sizeof(char));
+		memset(canvas[i], ' ', y);
+	}
+
+	srand(time(NULL));
+
+	// generate a cool looking lightning bolt of a certain length
+	int chars = rand() % (x + y / 2);
+
+	// TODO DCB pick a random spot to start in the middle 50% of the window
+	int x0 = (x / 4) + (rand() % (x / 2));
+	int y0 = (y / 4) + (rand() % (y / 2));
+
+	bolt(canvas, x, y, chars, x0, y0);
+
 	// Output the contents of the array
 	// Go home (you're drunk)
 	move(0, 0);
@@ -98,6 +115,12 @@ int main(int argc, char **argv) {
 
 	// Exit curses mode
 	endwin();
+
+	// Hide the memory
+	for (int i = 0; i < x; ++i) {
+		free(canvas[i]);
+	}
+	free(canvas);
 
 	return 0;
 }
