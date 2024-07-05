@@ -9,6 +9,7 @@ static const char lightning_chars[] = {
 	'\\',
 	'/',
 	'|',
+	'A',
 };
 
 size_t num_chars = sizeof(lightning_chars) / sizeof(char); // TODO DCB marcro for this?
@@ -24,6 +25,17 @@ void bolt(char **canvas, int x, int y, int chars, int x0, int y0) {
 		printf("%d chars remaining\n", chars);
 
 		char c = rndchar();
+
+		if (c == 'A') {
+			// branch!
+			canvas[x0][y0] = c;
+			canvas[x0 - 1][y0 + 1] = '/';
+			canvas[x0 + 2][y0 + 1] = '\\';
+			bolt(canvas, x, y, chars / 2, x0 - 2, y0 + 2);
+			bolt(canvas, x, y, chars / 2, x0 + 2, y0 + 2);
+			return;
+		}
+
 		int len = (rand() % 10);
 
 		if (len > chars) {
