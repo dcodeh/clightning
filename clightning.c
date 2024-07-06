@@ -76,14 +76,15 @@ void bolt(char **canvas, int **resistance, int xmax, int ymax, int x, int y, int
 				}
 
 				int r = resistance[i][j];
+				if (r <= 1) {
+					bolt(canvas, resistance, xmax, ymax, i, j, len / 2);
+				}
+
 				if (r < m) {
 					printf("%d < %d\n", r, m);
 					m = r;
 					xmin = i;
 					ymin = j;
-				} else if (r == m) {
-					printf("RECURSION-URSION-ursion-ursion-u r s i o n-...\n");
-					bolt(canvas, resistance, xmax, ymax, i, j, len / 2);
 				}
 			}
 		}
@@ -126,18 +127,15 @@ int main(int argc, char **argv) {
 		resistance[i] = malloc(y * sizeof(int));
 		memset(canvas[i], ' ', y);
 		for (int j = 0; j < y; ++j) {
-			int r = rand() % (2 * RESISTANCE_MAX);
-			if (r >= RESISTANCE_MAX) {
-				r = RESISTANCE_MAX - 1;
-			}
-			resistance[i][j] = r;
+			resistance[i][j] = rand() % RESISTANCE_MAX;
 		}
 	}
 
 	// pick a random spot to start in the middle 50% of the window
 	int x0 = (x / 4) + (rand() % (x / 2));
 	int y0 = (y / 4) + (rand() % (y / 2));
-	int len = rand() % (2 * x + y);
+	// int len = rand() % (8 * x + y);
+	int len = 200;
 
 	bolt(canvas, resistance, x, y, x0, y0, len);
 
