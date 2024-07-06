@@ -6,21 +6,11 @@
 
 #define RESISTANCE_MAX 10
 
-union direction {
-	unsigned val : 4;
-	struct {
-		unsigned north : 1;
-		unsigned east : 1;
-		unsigned south : 1;
-		unsigned west : 1;
-	} bits;
-};
-
 enum dir {
 	NONE = 0,
 	NORTH = 0x8,
-	EAST = 0x2,
-	SOUTH = 0x4,
+	EAST = 0x4,
+	SOUTH = 0x2,
 	WEST = 0x1,
 };
 
@@ -37,14 +27,22 @@ static char chars[] = {
 };
 
 unsigned get_direction(int x, int y) {
-	union direction dir;
+	unsigned dir = 0;
 
-	dir.bits.north = (y < 0);
-	dir.bits.south = (y > 0);
-	dir.bits.east = (x > 0);
-	dir.bits.west = (x < 0);
+	if (y < 0) {
+		dir |= NORTH;
+	} else if (y > 0) {
+		dir |= SOUTH;
+	}
 
-	return dir.val;
+	if (x > 0) {
+		dir |= EAST;
+	} else if (x < 0) {
+		dir |= WEST;
+	}
+
+	printf("Dir: %d, %d = %#x\n", x, y, dir);
+	return dir;
 }
 
 void bolt(char **canvas, int **resistance, int xmax, int ymax, int x, int y, int len) {
@@ -81,7 +79,6 @@ void bolt(char **canvas, int **resistance, int xmax, int ymax, int x, int y, int
 				}
 
 				if (r < m) {
-					printf("%d < %d\n", r, m);
 					m = r;
 					xmin = i;
 					ymin = j;
@@ -89,11 +86,11 @@ void bolt(char **canvas, int **resistance, int xmax, int ymax, int x, int y, int
 			}
 		}
 
-		char c = chars[get_direction(x - xmin, y - ymin)];
 		if (canvas[x][y] != ' ') {
 			// deja vu
 			return;
 		}
+		char c = chars[get_direction(x - xmin, y - ymin)];
 		canvas[x][y] = c;
 		lastx = x;
 		lasty = y;
@@ -134,8 +131,7 @@ int main(int argc, char **argv) {
 	// pick a random spot to start in the middle 50% of the window
 	int x0 = (x / 4) + (rand() % (x / 2));
 	int y0 = (y / 4) + (rand() % (y / 2));
-	// int len = rand() % (8 * x + y);
-	int len = 200;
+	int len = rand() % (8 * x + y);
 
 	bolt(canvas, resistance, x, y, x0, y0, len);
 
