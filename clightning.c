@@ -4,6 +4,8 @@
 #include <time.h>
 #include <string.h>
 
+#define RESISTANCE_MAX 10
+
 union direction {
 	unsigned val : 4;
 	struct {
@@ -51,7 +53,7 @@ void bolt(char **canvas, int **resistance, int xmax, int ymax, int x, int y, int
 
 	while (len-- > 0) {
 		// pick the path(s) of least resistance
-		int m = 10; // TODO DCB always larger than the highest resistance value
+		int m = RESISTANCE_MAX; // TODO DCB always larger than the highest resistance value
 		int xmin, ymin;
 
 		for (int i = x - 1; i < x + 1; ++i) {
@@ -79,13 +81,10 @@ void bolt(char **canvas, int **resistance, int xmax, int ymax, int x, int y, int
 					m = r;
 					xmin = i;
 					ymin = j;
-				}
-#if 0
-				else if (r == m) {
+				} else if (r == m) {
 					printf("RECURSION-URSION-ursion-ursion-u r s i o n-...\n");
 					bolt(canvas, resistance, xmax, ymax, i, j, len / 2);
 				}
-#endif
 			}
 		}
 
@@ -123,7 +122,7 @@ int main(int argc, char **argv) {
 		resistance[i] = malloc(y * sizeof(int));
 		memset(canvas[i], ' ', y);
 		for (int j = 0; j < y; ++j) {
-			resistance[i][j] = rand() % 5;
+			resistance[i][j] = rand() % RESISTANCE_MAX;
 		}
 	}
 
