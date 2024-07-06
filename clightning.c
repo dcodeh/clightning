@@ -54,11 +54,11 @@ void bolt(char **canvas, int **resistance, int xmax, int ymax, int x, int y, int
 		int m = 10; // TODO DCB always larger than the highest resistance value
 		int xmin, ymin;
 
-		for (int i = x - 1; i > 0 && i < xmax && i < x + 1; ++i) {
-			for (int j = y - 1; j > 0 && j < ymax && j < y + 1; ++j) {
+		for (int i = x - 1; i < x + 1; ++i) {
+			for (int j = y - 1; j < y + 1; ++j) {
 				if (i < 0 || i >= xmax || j < 0 || j >= ymax) {
 					// skip invalid indexes (around the edges and such)
-					continue;
+					return;
 				}
 
 				if (lastx > 0 && lasty > 0) {
@@ -75,10 +75,17 @@ void bolt(char **canvas, int **resistance, int xmax, int ymax, int x, int y, int
 
 				int r = resistance[i][j];
 				if (r < m) {
+					printf("%d < %d\n", r, m);
 					m = r;
 					xmin = i;
 					ymin = j;
 				}
+#if 0
+				else if (r == m) {
+					printf("RECURSION-URSION-ursion-ursion-u r s i o n-...\n");
+					bolt(canvas, resistance, xmax, ymax, i, j, len / 2);
+				}
+#endif
 			}
 		}
 
