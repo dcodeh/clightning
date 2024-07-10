@@ -53,29 +53,34 @@ void bolt(char **canvas, int **resistance, int xmax, int ymax, int x, int y, int
 		// pick the path(s) of least resistance
 		int m = RESISTANCE_MAX; // TODO DCB always larger than the highest resistance value
 		int xmin, ymin;
+		printf("LEN: %d\n", len);
 
 		for (int i = x - 1; i < x + 1; ++i) {
 			for (int j = y - 1; j < y + 1; ++j) {
 				if (i < 0 || i >= xmax || j < 0 || j >= ymax) {
 					// skip invalid indexes (around the edges and such)
+					printf("out");
 					return;
 				}
 
 				if (lastx > 0 && lasty > 0) {
 					if (i == lastx && j == lasty) {
 						// skip the place we came from
+						printf("bye");
 						continue;
 					}
 				}
 
 				if (i == x && j == y) {
 					// skip center position
+					printf("cya");
 					continue;
 				}
 
 				int r = resistance[i][j];
-				if (r <= 1) {
-					bolt(canvas, resistance, xmax, ymax, i, j, len / 2);
+				if (r < 3) {
+					printf("recursion\n");
+					bolt(canvas, resistance, xmax, ymax, i, j, len);
 				}
 
 				if (r < m) {
@@ -132,6 +137,7 @@ int main(int argc, char **argv) {
 	int x0 = (x / 4) + (rand() % (x / 2));
 	int y0 = (y / 4) + (rand() % (y / 2));
 	int len = rand() % (8 * x + y);
+	printf("Len: %d\n", len);
 
 	bolt(canvas, resistance, x, y, x0, y0, len);
 
