@@ -59,35 +59,23 @@ void bolt(char **canvas, int **resistance, int xmax, int ymax, int x, int y, int
 			for (int j = y - 1; j < y + 1; ++j) {
 				if (i < 0 || i >= xmax || j < 0 || j >= ymax) {
 					// skip invalid indexes (around the edges and such)
-					printf("out");
-					return;
+					break;
 				}
 
 				if (lastx > 0 && lasty > 0) {
 					if (i == lastx && j == lasty) {
 						// skip the place we came from
-						printf("bye");
 						continue;
 					}
 				}
 
 				if (i == x && j == y) {
 					// skip center position
-					printf("cya");
 					continue;
 				}
 
 				int r = resistance[i][j];
-				printf("Check %d, %d = %d\n", i, j, r);
-#if 0
-				if (r < 3) {
-					printf("recursion\n");
-					bolt(canvas, resistance, xmax, ymax, i, j, len);
-				}
-#endif
-
 				if (r < m) {
-					printf("Winnah: %d < %d\n", r, m);
 					m = r;
 					xmin = i;
 					ymin = j;
@@ -95,17 +83,12 @@ void bolt(char **canvas, int **resistance, int xmax, int ymax, int x, int y, int
 			}
 		}
 
-		if (canvas[x][y] != ' ') {
-			// deja vu
-			return;
-		}
 		char c = chars[get_direction(x - xmin, y - ymin)];
 		canvas[x][y] = c;
 		lastx = x;
 		lasty = y;
 		x = xmin;
 		y = ymin;
-		printf("Placed %c at %d, %d\n", c, lastx, lasty);
 	}
 }
 
