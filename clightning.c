@@ -78,12 +78,16 @@ void bolt(char **canvas, int **resistance, int xmax, int ymax, int x, int y, int
 				}
 
 				int r = resistance[i][j];
+				printf("Check %d, %d = %d\n", i, j, r);
+#if 0
 				if (r < 3) {
 					printf("recursion\n");
 					bolt(canvas, resistance, xmax, ymax, i, j, len);
 				}
+#endif
 
 				if (r < m) {
+					printf("Winnah: %d < %d\n", r, m);
 					m = r;
 					xmin = i;
 					ymin = j;
