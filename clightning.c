@@ -80,6 +80,11 @@ void bolt(char **canvas, int **resistance, int xmax, int ymax, int x, int y, int
 					xmin = i;
 					ymin = j;
 				}
+
+				if (r < 2) {
+					bolt(canvas, resistance, xmax, ymax, i, j, len / 2);
+				}
+
 			}
 		}
 
