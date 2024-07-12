@@ -81,15 +81,17 @@ void bolt(char **canvas, int **resistance, int xmax, int ymax, int x, int y, int
 					ymin = j;
 				}
 
-				if (r < 2) {
-					bolt(canvas, resistance, xmax, ymax, i, j, len / 2);
+				if (r == 0) {
+					bolt(canvas, resistance, xmax, ymax, i, j, len);
 				}
 
 			}
 		}
 
 		char c = chars[get_direction(x - xmin, y - ymin)];
-		canvas[x][y] = c;
+		if (canvas[x][y] == ' ') {
+			canvas[x][y] = c;
+		}
 		lastx = x;
 		lasty = y;
 		x = xmin;
