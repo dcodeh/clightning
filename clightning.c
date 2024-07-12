@@ -59,7 +59,7 @@ void bolt(char **canvas, int **resistance, int xmax, int ymax, int x, int y, int
 			for (int j = y - 1; j < y + 1; ++j) {
 				if (i < 0 || i >= xmax || j < 0 || j >= ymax) {
 					// skip invalid indexes (around the edges and such)
-					break;
+					return;
 				}
 
 				if (lastx > 0 && lasty > 0) {
