@@ -56,11 +56,13 @@ void bolt(char **canvas, int **resistance, int xmax, int ymax, int x, int y, int
 		printf("LEN: %d\n", len);
 
 		for (int i = x - 1; i < x + 1; ++i) {
+			if (i < 0 || i >= xmax) {
+				continue;
+			}
+
 			for (int j = y - 1; j < y + 1; ++j) {
-				if (i < 0 || i >= xmax || j < 0 || j >= ymax) {
-					// skip invalid indexes (around the edges and such)
-					printf("death. i: %d, j: %d, xmax: %d, ymax: %d\n", i, j, xmax, ymax);
-					return;
+				if (j < 0 || j >= ymax) {
+					continue;
 				}
 
 				if (lastx > 0 && lasty > 0) {
