@@ -49,7 +49,7 @@ void bolt(char **canvas, int **resistance, int xmax, int ymax, int x, int y, int
 	int lastx = -1;
 	int lasty = -1;
 
-	while (len-- > 0) {
+	do {
 		// pick the path(s) of least resistance
 		int m = RESISTANCE_MAX; // TODO DCB always larger than the highest resistance value
 		int xmin, ymin;
@@ -59,6 +59,7 @@ void bolt(char **canvas, int **resistance, int xmax, int ymax, int x, int y, int
 			for (int j = y - 1; j < y + 1; ++j) {
 				if (i < 0 || i >= xmax || j < 0 || j >= ymax) {
 					// skip invalid indexes (around the edges and such)
+					printf("death. i: %d, j: %d, xmax: %d, ymax: %d\n", i, j, xmax, ymax);
 					return;
 				}
 
@@ -84,7 +85,6 @@ void bolt(char **canvas, int **resistance, int xmax, int ymax, int x, int y, int
 				if (r == 0) {
 					bolt(canvas, resistance, xmax, ymax, i, j, len);
 				}
-
 			}
 		}
 
@@ -96,7 +96,10 @@ void bolt(char **canvas, int **resistance, int xmax, int ymax, int x, int y, int
 		lasty = y;
 		x = xmin;
 		y = ymin;
-	}
+		len -= m;
+	} while (len > 0);
+
+	printf("Welp, len = %d\n", len);
 }
 
 int main(int argc, char **argv) {
@@ -130,7 +133,7 @@ int main(int argc, char **argv) {
 	// pick a random spot to start in the middle 50% of the window
 	int x0 = (x / 4) + (rand() % (x / 2));
 	int y0 = (y / 4) + (rand() % (y / 2));
-	int len = rand() % (8 * x + y);
+	int len = rand() % (x + y);
 	printf("Len: %d\n", len);
 
 	bolt(canvas, resistance, x, y, x0, y0, len);
