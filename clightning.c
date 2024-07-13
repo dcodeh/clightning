@@ -104,7 +104,7 @@ void bolt(char **canvas, int **resistance, int xmax, int ymax, int x, int y, int
 int main(int argc, char **argv) {
 	// Enter curses mode
 	initscr();
-	timeout(10000);
+	timeout(100);
 
 	// Disable character buffering
 	raw();
@@ -142,20 +142,26 @@ int main(int argc, char **argv) {
 	// Go home (you're drunk)
 	move(0, 0);
 
-	for (int i = 0; i < x; ++i) {
-		for (int j = 0; j < y; ++j) {
-			char c = canvas[i][j];
-			if (c != ' ') {
-				attron(A_BOLD);
-				mvaddch(j, i, c);
+	WINDOW *bolt;
+	WINDOW *blank;
+	bolt = newwin(y, x, 0, /* starty */ 0 /* startx */);
+	blank = newwin(y, x, 0, /* starty */ 0 /* startx */);
+
+	for (int i = 0; i < 3; ++i) {
+		for (int i = 0; i < x; ++i) {
+			for (int j = 0; j < y; ++j) {
+				char c = canvas[i][j];
+				if (c != ' ') {
+					wattron(bolt, A_BOLD);
+					mvwaddch(bolt, j, i, c);
+				}
 			}
 		}
+		wrefresh(bolt);
+		getch();
+		wrefresh(blank);
+		getch();
 	}
-
-	refresh();
-	getch();
-
-	clear();
 
 	// Exit curses mode
 	endwin();
