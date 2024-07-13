@@ -45,10 +45,7 @@ unsigned get_direction(int x, int y) {
 	return dir;
 }
 
-void bolt(char **canvas, int **resistance, int xmax, int ymax, int x, int y, int len) {
-	int lastx = -1;
-	int lasty = -1;
-
+void bolt(char **canvas, int **resistance, int xmax, int ymax, int x, int y, int len, int lastx, int lasty) {
 	do {
 		// pick the path(s) of least resistance
 		int m = RESISTANCE_MAX; // TODO DCB always larger than the highest resistance value
@@ -57,12 +54,12 @@ void bolt(char **canvas, int **resistance, int xmax, int ymax, int x, int y, int
 
 		for (int i = x - 1; i < x + 1; ++i) {
 			if (i < 0 || i >= xmax) {
-				continue;
+				return;
 			}
 
 			for (int j = y - 1; j < y + 1; ++j) {
 				if (j < 0 || j >= ymax) {
-					continue;
+					return;
 				}
 
 				if (lastx > 0 && lasty > 0) {
@@ -84,8 +81,8 @@ void bolt(char **canvas, int **resistance, int xmax, int ymax, int x, int y, int
 					ymin = j;
 				}
 
-				if (r == 0) {
-					bolt(canvas, resistance, xmax, ymax, i, j, len);
+				if (r < 2) {
+					bolt(canvas, resistance, xmax, ymax, i, j, len / 2, x, y);
 				}
 			}
 		}
@@ -138,7 +135,7 @@ int main(int argc, char **argv) {
 	int len = rand() % (x + y);
 	printf("Len: %d\n", len);
 
-	bolt(canvas, resistance, x, y, x0, y0, len);
+	bolt(canvas, resistance, x, y, x0, y0, len, -1 /* lastx */, -1 /* lasty */);
 
 	// Output the contents of the array
 	// Go home (you're drunk)
@@ -150,9 +147,6 @@ int main(int argc, char **argv) {
 			if (c != ' ') {
 				attron(A_BOLD);
 				mvaddch(j, i, c);
-			} else {
-				attroff(A_BOLD);
-				mvaddch(j, i, resistance[i][j] + '0');
 			}
 		}
 	}
