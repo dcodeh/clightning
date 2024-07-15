@@ -143,9 +143,7 @@ int main(int argc, char **argv) {
 	move(0, 0);
 
 	WINDOW *bolt;
-	WINDOW *blank;
 	bolt = newwin(y, x, 0, /* starty */ 0 /* startx */);
-	blank = newwin(y, x, 0, /* starty */ 0 /* startx */);
 
 	for (int i = 0; i < 3; ++i) {
 		for (int i = 0; i < x; ++i) {
@@ -159,12 +157,11 @@ int main(int argc, char **argv) {
 		}
 		wrefresh(bolt);
 		getch();
-		wrefresh(blank);
+		clear();
 		getch();
 	}
 
 	delwin(bolt);
-	delwin(blank);
 
 	// Exit curses mode
 	endwin();
