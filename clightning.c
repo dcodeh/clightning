@@ -163,6 +163,9 @@ int main(int argc, char **argv) {
 		getch();
 	}
 
+	delwin(bolt);
+	delwin(blank);
+
 	// Exit curses mode
 	endwin();
 
