@@ -2,10 +2,10 @@ CC=gcc
 LIBS=-lncurses
 
 clightning: clightning.o
-	$(CC) -ggdb $< $(LIBS) -o $@
+	$(CC) -g $< $(LIBS) -o $@
 
 clightning.o: clightning.c
-	$(CC) -c $<
+	$(CC) -g -c $<
 
 clean:
 	-rm clightning.o

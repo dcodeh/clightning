@@ -4,84 +4,107 @@
 #include <time.h>
 #include <string.h>
 
-static const char lightning_chars[] = {
-	'-',
-	'\\',
-	'/',
-	'|',
-	'A',
+#define RESISTANCE_MAX 10
+
+enum dir {
+	NONE = 0,
+	NORTH = 0x8,
+	EAST = 0x4,
+	SOUTH = 0x2,
+	WEST = 0x1,
 };
 
-size_t num_chars = sizeof(lightning_chars) / sizeof(char); // TODO DCB marcro for this?
+static char chars[] = {
+	[NONE] = '*',
+	[SOUTH] = '|',
+	[NORTH] = '|',
+	[NORTH | EAST] = '/',
+	[NORTH | WEST] = '\\',
+	[SOUTH | WEST] = '/',
+	[SOUTH | EAST] = '\\',
+	[EAST] = '-',
+	[WEST] = '-',
+};
 
-char rndchar() {
-	int r = rand() % num_chars;
-	return lightning_chars[r];
-}
+unsigned get_direction(int x, int y) {
+	unsigned dir = 0;
 
-void bolt(char **canvas, int x, int y, int chars, int x0, int y0) {
-	printf("Start: %d, %d\n", x0, y0);
-	while (chars > 0) {
-		printf("%d chars remaining\n", chars);
-
-		char c = rndchar();
-
-		if (c == 'A') {
-			// branch!
-			canvas[x0][y0] = c;
-			canvas[x0 - 1][y0 + 1] = '/';
-			canvas[x0 + 2][y0 + 1] = '\\';
-			bolt(canvas, x, y, chars / 2, x0 - 2, y0 + 2);
-			bolt(canvas, x, y, chars / 2, x0 + 2, y0 + 2);
-			return;
-		}
-
-		int len = (rand() % 10);
-
-		if (len > chars) {
-			len = chars;
-		}
-
-		printf("%c x %d\n", c, len);
-
-		chars = chars - len;
-		while(len--) {
-			if (x0 >= 0 && y0 >= 0 && y0 < y && x0 < x) {
-				canvas[x0][y0] = c;
-				printf(" -> %c at %d, %d\n", c, x0, y0);
-			} else {
-				printf("EEK!\n");
-				break;
-			}
-
-			switch (c) {
-				case '-':
-					x0++;
-					break;
-				case '\\':
-					x0++;
-					y0++;
-					break;
-				case '/':
-					x0--;
-					y0++;
-					break;
-				case '|':
-					y0++;
-					break;
-				default:
-					printf("what\n");
-					exit(-1);
-					break;
-			}
-		}
+	if (y < 0) {
+		dir |= NORTH;
+	} else if (y > 0) {
+		dir |= SOUTH;
 	}
 
+	if (x > 0) {
+		dir |= EAST;
+	} else if (x < 0) {
+		dir |= WEST;
+	}
+
+	printf("Dir: %d, %d = %#x\n", x, y, dir);
+	return dir;
+}
+
+void bolt(char **canvas, int **resistance, int xmax, int ymax, int x, int y, int len, int lastx, int lasty) {
+	do {
+		// pick the path(s) of least resistance
+		int m = RESISTANCE_MAX; // TODO DCB always larger than the highest resistance value
+		int xmin, ymin;
+		printf("LEN: %d\n", len);
+
+		for (int i = x - 1; i < x + 1; ++i) {
+			if (i < 0 || i >= xmax) {
+				return;
+			}
+
+			for (int j = y - 1; j < y + 1; ++j) {
+				if (j < 0 || j >= ymax) {
+					return;
+				}
+
+				if (lastx > 0 && lasty > 0) {
+					if (i == lastx && j == lasty) {
+						// skip the place we came from
+						continue;
+					}
+				}
+
+				if (i == x && j == y) {
+					// skip center position
+					continue;
+				}
+
+				int r = resistance[i][j];
+				if (r < m) {
+					m = r;
+					xmin = i;
+					ymin = j;
+				}
+
+				if (r < 2) {
+					bolt(canvas, resistance, xmax, ymax, i, j, len / 2, x, y);
+				}
+			}
+		}
+
+		char c = chars[get_direction(x - xmin, y - ymin)];
+		if (canvas[x][y] == ' ') {
+			canvas[x][y] = c;
+		}
+		lastx = x;
+		lasty = y;
+		x = xmin;
+		y = ymin;
+		len -= m;
+	} while (len > 0);
+
+	printf("Welp, len = %d\n", len);
 }
 
 int main(int argc, char **argv) {
 	// Enter curses mode
 	initscr();
+	timeout(100);
 
 	// Disable character buffering
 	raw();
@@ -93,37 +116,52 @@ int main(int argc, char **argv) {
 	int x, y;
 	getmaxyx(stdscr, y, x);
 
-	// TODO DCB clean up this hacky mess
-	char **canvas = malloc(x * sizeof(char *));
-	for (int i = 0; i < x; ++i) {
-		canvas[i] = malloc(y * sizeof(char));
-		memset(canvas[i], ' ', y);
-	}
-
 	srand(time(NULL));
 
-	// generate a cool looking lightning bolt of a certain length
-	int chars = rand() % (x + y / 2);
+	// TODO DCB clean up this hacky mess
+	char **canvas = malloc(x * sizeof(char *));
+	int **resistance = malloc(x * sizeof(int *));
+	for (int i = 0; i < x; ++i) {
+		canvas[i] = malloc(y * sizeof(char));
+		resistance[i] = malloc(y * sizeof(int));
+		memset(canvas[i], ' ', y);
+		for (int j = 0; j < y; ++j) {
+			resistance[i][j] = rand() % RESISTANCE_MAX;
+		}
+	}
 
-	// TODO DCB pick a random spot to start in the middle 50% of the window
+	// pick a random spot to start in the middle 50% of the window
 	int x0 = (x / 4) + (rand() % (x / 2));
 	int y0 = (y / 4) + (rand() % (y / 2));
+	int len = rand() % (x + y);
+	printf("Len: %d\n", len);
 
-	bolt(canvas, x, y, chars, x0, y0);
+	bolt(canvas, resistance, x, y, x0, y0, len, -1 /* lastx */, -1 /* lasty */);
 
 	// Output the contents of the array
 	// Go home (you're drunk)
 	move(0, 0);
-	attron(A_BOLD);
 
-	for (int i = 0; i < x; ++i) {
-		for (int j = 0; j < y; ++j) {
-			mvaddch(j, i, canvas[i][j]);
+	WINDOW *bolt;
+	bolt = newwin(y, x, 0, /* starty */ 0 /* startx */);
+
+	for (int i = 0; i < 3; ++i) {
+		for (int i = 0; i < x; ++i) {
+			for (int j = 0; j < y; ++j) {
+				char c = canvas[i][j];
+				if (c != ' ') {
+					wattron(bolt, A_BOLD);
+					mvwaddch(bolt, j, i, c);
+				}
+			}
 		}
+		wrefresh(bolt);
+		getch();
+		clear();
+		getch();
 	}
 
-	refresh();
-	getch();
+	delwin(bolt);
 
 	// Exit curses mode
 	endwin();
@@ -131,8 +169,10 @@ int main(int argc, char **argv) {
 	// Hide the memory
 	for (int i = 0; i < x; ++i) {
 		free(canvas[i]);
+		free(resistance[i]);
 	}
 	free(canvas);
+	free(resistance);
 
 	return 0;
 }
