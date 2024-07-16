@@ -146,7 +146,6 @@ int main(int argc, char **argv) {
 	wclear(bolt);
 	wtimeout(bolt, 100);
 	wtimeout(blank, 100);
-	wtimeout(blank, 100);
 
 	for (int i = 0; i < 3; ++i) {
 		for (int i = 0; i < x; ++i) {
@@ -160,7 +159,8 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	for (int i = 0; i < 3; ++i) {
+	int flashes = 2 + rand() % 10;
+	for (int i = 0; i < flashes; ++i) {
 		redrawwin(bolt);
 		wgetch(bolt);
 		redrawwin(blank);
