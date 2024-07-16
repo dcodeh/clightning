@@ -45,7 +45,7 @@ unsigned get_direction(int x, int y) {
 	return dir;
 }
 
-void bolt(char **canvas, int **resistance, int xmax, int ymax, int x, int y, int len, int lastx, int lasty) {
+void bolt(char **canvas, int **resistance, int **sky, int xmax, int ymax, int x, int y, int len, int lastx, int lasty) {
 	do {
 		// pick the path(s) of least resistance
 		int m = RESISTANCE_MAX; // TODO DCB always larger than the highest resistance value
@@ -81,7 +81,7 @@ void bolt(char **canvas, int **resistance, int xmax, int ymax, int x, int y, int
 				}
 
 				if (r < 2) {
-					bolt(canvas, resistance, xmax, ymax, i, j, len / 2, x, y);
+					bolt(canvas, resistance, sky, xmax, ymax, i, j, len / 2, x, y);
 				}
 			}
 		}
@@ -89,6 +89,19 @@ void bolt(char **canvas, int **resistance, int xmax, int ymax, int x, int y, int
 		char c = chars[get_direction(x - xmin, y - ymin)];
 		if (canvas[x][y] == ' ') {
 			canvas[x][y] = c;
+
+			for (int i = x - 5; i < x + 5; ++i) {
+				if (i < 0 || i >= xmax) {
+					return;
+				}
+
+				for (int j = y - 5; j < y + 5; ++j) {
+					if (j < 0 || j >= ymax) {
+						return;
+					}
+					sky[i][j] = sky[i][j] + 1;
+				}
+			}
 		}
 		lastx = x;
 		lasty = y;
@@ -96,7 +109,6 @@ void bolt(char **canvas, int **resistance, int xmax, int ymax, int x, int y, int
 		y = ymin;
 		len -= m;
 	} while (len > 0);
-
 }
 
 int main(int argc, char **argv) {
@@ -118,11 +130,14 @@ int main(int argc, char **argv) {
 
 	// TODO DCB clean up this hacky mess
 	char **canvas = malloc(x * sizeof(char *));
+	int **sky = malloc( x * sizeof(int *));
 	int **resistance = malloc(x * sizeof(int *));
 	for (int i = 0; i < x; ++i) {
 		canvas[i] = malloc(y * sizeof(char));
 		resistance[i] = malloc(y * sizeof(int));
+		sky[i] = malloc(y * sizeof(int));
 		memset(canvas[i], ' ', y);
+		memset(sky[i], 0, y);
 		for (int j = 0; j < y; ++j) {
 			resistance[i][j] = rand() % RESISTANCE_MAX;
 		}
@@ -133,7 +148,7 @@ int main(int argc, char **argv) {
 	int y0 = (y / 4) + (rand() % (y / 2));
 	int len = rand() % (x + y);
 
-	bolt(canvas, resistance, x, y, x0, y0, len, -1 /* lastx */, -1 /* lasty */);
+	bolt(canvas, resistance, sky, x, y, x0, y0, len, -1 /* lastx */, -1 /* lasty */);
 
 	WINDOW *bolt;
 	WINDOW *blank;
@@ -149,12 +164,14 @@ int main(int argc, char **argv) {
 				if (c != ' ') {
 					wattron(bolt, A_BOLD);
 					mvwaddch(bolt, j, i, c);
+				} else {
+					wattroff(bolt, A_BOLD);
+					mvwaddch(bolt, j, i, sky[i][j] + '0');
 				}
 			}
 		}
 	}
 	wmove(bolt, 0, 0);
-
 
 	int flashes = 2 + rand() % 6;
 	for (int i = 0; i < flashes; ++i) {
@@ -182,9 +199,11 @@ int main(int argc, char **argv) {
 	for (int i = 0; i < x; ++i) {
 		free(canvas[i]);
 		free(resistance[i]);
+		free(sky[i]);
 	}
 	free(canvas);
 	free(resistance);
+	free(sky);
 
 	return 0;
 }
