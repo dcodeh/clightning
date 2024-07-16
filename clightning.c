@@ -158,10 +158,10 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	int flashes = 2 + rand() % 10;
+	int flashes = 2 + rand() % 6;
 	for (int i = 0; i < flashes; ++i) {
-		int on = 1000 + (rand() % (200 * 1000));
-		int off = 1000 + (rand() % (200 *1000));
+		int on = 10000 + (rand() % (100 * 1000));
+		int off = 10000 + (rand() % (100 * 1000));
 		redrawwin(bolt);
 		wrefresh(bolt);
 		usleep(on);
