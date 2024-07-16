@@ -41,7 +41,6 @@ unsigned get_direction(int x, int y) {
 		dir |= WEST;
 	}
 
-	printf("Dir: %d, %d = %#x\n", x, y, dir);
 	return dir;
 }
 
@@ -50,7 +49,6 @@ void bolt(char **canvas, int **resistance, int xmax, int ymax, int x, int y, int
 		// pick the path(s) of least resistance
 		int m = RESISTANCE_MAX; // TODO DCB always larger than the highest resistance value
 		int xmin, ymin;
-		printf("LEN: %d\n", len);
 
 		for (int i = x - 1; i < x + 1; ++i) {
 			if (i < 0 || i >= xmax) {
@@ -98,7 +96,6 @@ void bolt(char **canvas, int **resistance, int xmax, int ymax, int x, int y, int
 		len -= m;
 	} while (len > 0);
 
-	printf("Welp, len = %d\n", len);
 }
 
 int main(int argc, char **argv) {
@@ -134,7 +131,6 @@ int main(int argc, char **argv) {
 	int x0 = (x / 4) + (rand() % (x / 2));
 	int y0 = (y / 4) + (rand() % (y / 2));
 	int len = rand() % (x + y);
-	printf("Len: %d\n", len);
 
 	bolt(canvas, resistance, x, y, x0, y0, len, -1 /* lastx */, -1 /* lasty */);
 
