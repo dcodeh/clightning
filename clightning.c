@@ -139,7 +139,14 @@ int main(int argc, char **argv) {
 	move(0, 0);
 
 	WINDOW *bolt;
+	WINDOW *blank;
 	bolt = newwin(y, x, 0, /* starty */ 0 /* startx */);
+	blank = newwin(y, x, 0, /* starty */ 0 /* startx */);
+	wclear(blank);
+	wclear(bolt);
+	wtimeout(bolt, 100);
+	wtimeout(blank, 100);
+	wtimeout(blank, 100);
 
 	for (int i = 0; i < 3; ++i) {
 		for (int i = 0; i < x; ++i) {
@@ -151,13 +158,18 @@ int main(int argc, char **argv) {
 				}
 			}
 		}
-		wrefresh(bolt);
-		getch();
-		clear();
-		getch();
 	}
 
+	for (int i = 0; i < 3; ++i) {
+		redrawwin(bolt);
+		wgetch(bolt);
+		redrawwin(blank);
+		wgetch(blank);
+	}
+
+
 	delwin(bolt);
+	delwin(blank);
 
 	// Exit curses mode
 	endwin();
