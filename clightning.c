@@ -135,10 +135,6 @@ int main(int argc, char **argv) {
 
 	bolt(canvas, resistance, x, y, x0, y0, len, -1 /* lastx */, -1 /* lasty */);
 
-	// Output the contents of the array
-	// Go home (you're drunk)
-	move(0, 0);
-
 	WINDOW *bolt;
 	WINDOW *blank;
 	bolt = newwin(y, x, 0, /* starty */ 0 /* startx */);
@@ -157,6 +153,8 @@ int main(int argc, char **argv) {
 			}
 		}
 	}
+	wmove(bolt, 0, 0);
+
 
 	int flashes = 2 + rand() % 6;
 	for (int i = 0; i < flashes; ++i) {
@@ -169,6 +167,9 @@ int main(int argc, char **argv) {
 		wrefresh(blank);
 		usleep(off);
 	}
+
+	wtimeout(blank, 1000);
+	wgetch(blank);
 
 
 	delwin(bolt);
