@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
+#include <unistd.h>
 
 #define RESISTANCE_MAX 10
 
@@ -144,8 +145,6 @@ int main(int argc, char **argv) {
 	blank = newwin(y, x, 0, /* starty */ 0 /* startx */);
 	wclear(blank);
 	wclear(bolt);
-	wtimeout(bolt, 100);
-	wtimeout(blank, 100);
 
 	for (int i = 0; i < 3; ++i) {
 		for (int i = 0; i < x; ++i) {
@@ -161,10 +160,14 @@ int main(int argc, char **argv) {
 
 	int flashes = 2 + rand() % 10;
 	for (int i = 0; i < flashes; ++i) {
+		int on = 1000 + (rand() % (200 * 1000));
+		int off = 1000 + (rand() % (200 *1000));
 		redrawwin(bolt);
-		wgetch(bolt);
+		wrefresh(bolt);
+		usleep(on);
 		redrawwin(blank);
-		wgetch(blank);
+		wrefresh(blank);
+		usleep(off);
 	}
 
 
