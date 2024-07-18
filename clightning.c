@@ -98,12 +98,12 @@ void bolt(char **canvas, int **resistance, int **sky, int xmax, int ymax, int x,
 		if (canvas[x][y] == ' ') {
 			canvas[x][y] = c;
 
-			for (int i = x - 5; i < x + 5; ++i) {
+			for (int i = x - 3; i < x + 3; ++i) {
 				if (i < 0 || i >= xmax) {
 					return;
 				}
 
-				for (int j = y - 5; j < y + 5; ++j) {
+				for (int j = y - 3; j < y + 3; ++j) {
 					if (j < 0 || j >= ymax) {
 						return;
 					}
@@ -132,10 +132,10 @@ int main(int argc, char **argv) {
 	// TODO DCB does this terminal support color?
 	start_color();
 	init_pair(BOLT_PAIR, COLOR_WHITE, COLOR_WHITE);
-	init_pair(INTENSE_GLOW_PAIR, COLOR_CYAN, COLOR_CYAN);
-	init_pair(MEDIUM_GLOW_PAIR, COLOR_BLUE, COLOR_BLUE);
+	init_pair(INTENSE_GLOW_PAIR, COLOR_WHITE, COLOR_CYAN);
+	init_pair(MEDIUM_GLOW_PAIR, COLOR_CYAN, COLOR_BLUE);
 	init_pair(LOW_GLOW_PAIR, COLOR_BLUE, COLOR_BLACK);
-	init_pair(NO_GLOW_PAIR, COLOR_BLACK, COLOR_BLACK);
+	init_pair(NO_GLOW_PAIR, COLOR_WHITE, COLOR_BLACK);
 
 	// Enquire about the size of the terminal we're dealing with
 	int x, y;
@@ -184,7 +184,6 @@ int main(int argc, char **argv) {
 					wattroff(bolt, COLOR_PAIR(BOLT_PAIR));
 				} else {
 					int brightness = sky[i][j];
-					wattron(bolt, A_DIM);
 					if (brightness > 9) {
 						wattron(bolt, COLOR_PAIR(INTENSE_GLOW_PAIR));
 						mvwaddch(bolt, j, i, '*');
@@ -198,11 +197,12 @@ int main(int argc, char **argv) {
 						mvwaddch(bolt, j, i, '.');
 						wattroff(bolt, COLOR_PAIR(LOW_GLOW_PAIR));
 					} else {
+						wattron(bolt, A_DIM);
 						wattron(bolt, COLOR_PAIR(NO_GLOW_PAIR));
 						mvwaddch(bolt, j, i, ' ');
 						wattroff(bolt, COLOR_PAIR(NO_GLOW_PAIR));
+						wattroff(bolt, A_DIM);
 					}
-					wattroff(bolt, A_DIM);
 				}
 			}
 		}
