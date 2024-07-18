@@ -114,7 +114,6 @@ void bolt(char **canvas, int **resistance, int **sky, int xmax, int ymax, int x,
 int main(int argc, char **argv) {
 	// Enter curses mode
 	initscr();
-	timeout(100);
 
 	// Disable character buffering
 	raw();
