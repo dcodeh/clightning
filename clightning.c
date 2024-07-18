@@ -7,6 +7,14 @@
 
 #define RESISTANCE_MAX 10
 
+enum color_pair {
+	BOLT_PAIR = 1,
+	INTENSE_GLOW_PAIR,
+	MEDIUM_GLOW_PAIR,
+	LOW_GLOW_PAIR,
+	NO_GLOW_PAIR
+};
+
 enum dir {
 	NONE = 0,
 	NORTH = 0x8,
@@ -121,6 +129,14 @@ int main(int argc, char **argv) {
 	// Disable echoing input characters that could mess up the artwork
 	noecho();
 
+	// TODO DCB does this terminal support color?
+	start_color();
+	init_pair(BOLT_PAIR, COLOR_WHITE, COLOR_WHITE);
+	init_pair(INTENSE_GLOW_PAIR, COLOR_CYAN, COLOR_CYAN);
+	init_pair(MEDIUM_GLOW_PAIR, COLOR_BLUE, COLOR_BLUE);
+	init_pair(LOW_GLOW_PAIR, COLOR_BLUE, COLOR_BLACK);
+	init_pair(NO_GLOW_PAIR, COLOR_BLACK, COLOR_BLACK);
+
 	// Enquire about the size of the terminal we're dealing with
 	int x, y;
 	getmaxyx(stdscr, y, x);
@@ -161,18 +177,30 @@ int main(int argc, char **argv) {
 			for (int j = 0; j < y; ++j) {
 				char c = canvas[i][j];
 				if (c != ' ') {
+					wattron(bolt, COLOR_PAIR(BOLT_PAIR));
 					wattron(bolt, A_BOLD);
 					mvwaddch(bolt, j, i, c);
 					wattroff(bolt, A_BOLD);
+					wattroff(bolt, COLOR_PAIR(BOLT_PAIR));
 				} else {
 					int brightness = sky[i][j];
 					wattron(bolt, A_DIM);
 					if (brightness > 9) {
+						wattron(bolt, COLOR_PAIR(INTENSE_GLOW_PAIR));
 						mvwaddch(bolt, j, i, '*');
+						wattroff(bolt, COLOR_PAIR(INTENSE_GLOW_PAIR));
 					} else if (brightness >= 4) {
+						wattron(bolt, COLOR_PAIR(MEDIUM_GLOW_PAIR));
 						mvwaddch(bolt, j, i, '\'');
+						wattroff(bolt, COLOR_PAIR(MEDIUM_GLOW_PAIR));
+					} else if (brightness >= 2) {
+						wattron(bolt, COLOR_PAIR(LOW_GLOW_PAIR));
+						mvwaddch(bolt, j, i, '.');
+						wattroff(bolt, COLOR_PAIR(LOW_GLOW_PAIR));
 					} else {
+						wattron(bolt, COLOR_PAIR(NO_GLOW_PAIR));
 						mvwaddch(bolt, j, i, ' ');
+						wattroff(bolt, COLOR_PAIR(NO_GLOW_PAIR));
 					}
 					wattroff(bolt, A_DIM);
 				}
