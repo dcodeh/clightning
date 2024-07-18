@@ -164,9 +164,18 @@ int main(int argc, char **argv) {
 				if (c != ' ') {
 					wattron(bolt, A_BOLD);
 					mvwaddch(bolt, j, i, c);
-				} else {
 					wattroff(bolt, A_BOLD);
-					mvwaddch(bolt, j, i, sky[i][j] + '0');
+				} else {
+					int brightness = sky[i][j];
+					wattron(bolt, A_DIM);
+					if (brightness > 9) {
+						mvwaddch(bolt, j, i, '*');
+					} else if (brightness >= 4) {
+						mvwaddch(bolt, j, i, '\'');
+					} else {
+						mvwaddch(bolt, j, i, ' ');
+					}
+					wattroff(bolt, A_DIM);
 				}
 			}
 		}
