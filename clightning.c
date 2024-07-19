@@ -131,9 +131,9 @@ int main(int argc, char **argv) {
 
 	// TODO DCB does this terminal support color?
 	start_color();
-	init_pair(BOLT_PAIR, COLOR_WHITE, COLOR_WHITE);
-	init_pair(INTENSE_GLOW_PAIR, COLOR_WHITE, COLOR_CYAN);
-	init_pair(MEDIUM_GLOW_PAIR, COLOR_CYAN, COLOR_BLUE);
+	init_pair(BOLT_PAIR, COLOR_WHITE, COLOR_BLACK);
+	init_pair(INTENSE_GLOW_PAIR, COLOR_WHITE, COLOR_BLACK);
+	init_pair(MEDIUM_GLOW_PAIR, COLOR_CYAN, COLOR_BLACK);
 	init_pair(LOW_GLOW_PAIR, COLOR_BLUE, COLOR_BLACK);
 	init_pair(NO_GLOW_PAIR, COLOR_WHITE, COLOR_BLACK);
 
@@ -184,25 +184,25 @@ int main(int argc, char **argv) {
 					wattroff(bolt, COLOR_PAIR(BOLT_PAIR));
 				} else {
 					int brightness = sky[i][j];
-					if (brightness > 9) {
+					wattron(bolt, A_DIM);
+					if (brightness > 8) {
 						wattron(bolt, COLOR_PAIR(INTENSE_GLOW_PAIR));
-						mvwaddch(bolt, j, i, '*');
+						mvwaddch(bolt, j, i, '@');
 						wattroff(bolt, COLOR_PAIR(INTENSE_GLOW_PAIR));
 					} else if (brightness >= 4) {
 						wattron(bolt, COLOR_PAIR(MEDIUM_GLOW_PAIR));
-						mvwaddch(bolt, j, i, '\'');
+						mvwaddch(bolt, j, i, '*');
 						wattroff(bolt, COLOR_PAIR(MEDIUM_GLOW_PAIR));
 					} else if (brightness >= 2) {
 						wattron(bolt, COLOR_PAIR(LOW_GLOW_PAIR));
 						mvwaddch(bolt, j, i, '.');
 						wattroff(bolt, COLOR_PAIR(LOW_GLOW_PAIR));
 					} else {
-						wattron(bolt, A_DIM);
 						wattron(bolt, COLOR_PAIR(NO_GLOW_PAIR));
 						mvwaddch(bolt, j, i, ' ');
 						wattroff(bolt, COLOR_PAIR(NO_GLOW_PAIR));
-						wattroff(bolt, A_DIM);
 					}
+					wattroff(bolt, A_DIM);
 				}
 			}
 		}
