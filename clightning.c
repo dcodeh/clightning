@@ -119,6 +119,10 @@ void bolt(char **canvas, int **resistance, int **sky, int xmax, int ymax, int x,
 	} while (len > 0);
 }
 
+// possible options:
+// --color
+// --glow
+// --storm
 int main(int argc, char **argv) {
 	// Enter curses mode
 	initscr();
@@ -129,13 +133,17 @@ int main(int argc, char **argv) {
 	// Disable echoing input characters that could mess up the artwork
 	noecho();
 
+	bool colorful = has_colors();
 	// TODO DCB does this terminal support color?
-	start_color();
-	init_pair(BOLT_PAIR, COLOR_WHITE, COLOR_BLACK);
-	init_pair(INTENSE_GLOW_PAIR, COLOR_WHITE, COLOR_BLACK);
-	init_pair(MEDIUM_GLOW_PAIR, COLOR_CYAN, COLOR_BLACK);
-	init_pair(LOW_GLOW_PAIR, COLOR_BLUE, COLOR_BLACK);
-	init_pair(NO_GLOW_PAIR, COLOR_WHITE, COLOR_BLACK);
+	if (colorful) {
+		start_color();
+		init_pair(BOLT_PAIR, COLOR_WHITE, COLOR_BLACK);
+		init_pair(INTENSE_GLOW_PAIR, COLOR_WHITE, COLOR_BLACK);
+		init_pair(MEDIUM_GLOW_PAIR, COLOR_CYAN, COLOR_BLACK);
+		init_pair(LOW_GLOW_PAIR, COLOR_BLUE, COLOR_BLACK);
+		init_pair(NO_GLOW_PAIR, COLOR_WHITE, COLOR_BLACK);
+	}
+
 
 	// Enquire about the size of the terminal we're dealing with
 	int x, y;
@@ -177,6 +185,7 @@ int main(int argc, char **argv) {
 			for (int j = 0; j < y; ++j) {
 				char c = canvas[i][j];
 				if (c != ' ') {
+					// TODO DCB check if colorful
 					wattron(bolt, COLOR_PAIR(BOLT_PAIR));
 					wattron(bolt, A_BOLD);
 					mvwaddch(bolt, j, i, c);
