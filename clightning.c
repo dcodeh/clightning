@@ -169,7 +169,7 @@ int main(int argc, char **argv) {
 	// pick a random spot to start in the middle 50% of the window
 	int x0 = (x / 4) + (rand() % (x / 2));
 	int y0 = (y / 4) + (rand() % (y / 2));
-	int len = rand() % (x + y);
+	int len = rand() % (x * y);
 
 	bolt(canvas, resistance, sky, x, y, x0, y0, len, -1 /* lastx */, -1 /* lasty */);
 
