@@ -6,6 +6,28 @@
 #include <unistd.h>
 
 #define RESISTANCE_MAX 10
+#define RECURSION_RESISTANCE 2
+#define GLOW_RADIUS 3
+
+#define MIN_FLASHES 2
+#define MAX_FLASHES 6
+
+// microseconds
+#define FLASH_ON_MAX (100 * 1000)
+#define FLASH_OFF_MAX (100 * 1000)
+#define FLASH_ON_MIN 10000
+#define FLASH_OFF_MIN 10000
+
+// milliseconds
+#define INPUT_TIMEOUT 1000
+
+// glow settings
+#define INTENSE_THRESHOLD 8
+#define INTENSE_CHAR '@'
+#define MEDIUM_THRESHOLD 4
+#define MEDIUM_CHAR  '*'
+#define LOW_THRESHOLD 2
+#define LOW_CHAR '.'
 
 enum color_pair {
 	BOLT_PAIR = 1,
@@ -66,17 +88,17 @@ void bolt_to_window(WINDOW *w, char **canvas, int **sky, int xmax, int ymax) {
 			} else {
 				int brightness = sky[i][j];
 				wattron(w, A_DIM);
-				if (brightness > 8) {
+				if (brightness > INTENSE_THRESHOLD) {
 					wattron(w, COLOR_PAIR(INTENSE_GLOW_PAIR));
-					mvwaddch(w, j, i, '@');
+					mvwaddch(w, j, i, INTENSE_CHAR);
 					wattroff(w, COLOR_PAIR(INTENSE_GLOW_PAIR));
-				} else if (brightness >= 4) {
+				} else if (brightness >= MEDIUM_THRESHOLD) {
 					wattron(w, COLOR_PAIR(MEDIUM_GLOW_PAIR));
-					mvwaddch(w, j, i, '*');
+					mvwaddch(w, j, i, MEDIUM_CHAR);
 					wattroff(w, COLOR_PAIR(MEDIUM_GLOW_PAIR));
-				} else if (brightness >= 2) {
+				} else if (brightness >= LOW_THRESHOLD) {
 					wattron(w, COLOR_PAIR(LOW_GLOW_PAIR));
-					mvwaddch(w, j, i, '.');
+					mvwaddch(w, j, i, LOW_CHAR);
 					wattroff(w, COLOR_PAIR(LOW_GLOW_PAIR));
 				} else {
 					wattron(w, COLOR_PAIR(NO_GLOW_PAIR));
@@ -143,7 +165,7 @@ void bolt(char **canvas, int **resistance, int **sky, int xmax, int ymax,
 					ymin = j;
 				}
 
-				if (r < 2) {
+				if (r < RECURSION_RESISTANCE) {
 					bolt(canvas, resistance, sky,
 							xmax, ymax, i, j,
 							len / 2,
@@ -156,7 +178,7 @@ void bolt(char **canvas, int **resistance, int **sky, int xmax, int ymax,
 		if (canvas[x][y] == ' ') {
 			canvas[x][y] = c;
 
-			color_sky(sky, x, y, xmax, ymax, 3 /* radius */);
+			color_sky(sky, x, y, xmax, ymax, GLOW_RADIUS/* radius */);
 		}
 		lastx = x;
 		lasty = y;
@@ -234,10 +256,10 @@ int main(int argc, char **argv) {
 	bolt_to_window(bolt, canvas, sky, xmax, ymax);
 
 	// Display the windows
-	int flashes = 2 + rand() % 6;
+	int flashes = MIN_FLASHES + rand() % MAX_FLASHES;
 	for (int i = 0; i < flashes; ++i) {
-		int on = 10000 + (rand() % (100 * 1000));
-		int off = 10000 + (rand() % (100 * 1000));
+		int on = FLASH_ON_MIN + (rand() % (FLASH_ON_MAX));
+		int off = FLASH_OFF_MIN + (rand() % (FLASH_OFF_MAX));
 		redrawwin(bolt);
 		wrefresh(bolt);
 		usleep(on);
@@ -247,7 +269,7 @@ int main(int argc, char **argv) {
 	}
 
 	// Wait for input
-	wtimeout(blank, 1000);
+	wtimeout(blank, INPUT_TIMEOUT);
 	wgetch(blank);
 
 	// Clean up
