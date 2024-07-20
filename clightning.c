@@ -69,7 +69,8 @@ void color_sky(int **sky, int x, int y, int xmax, int ymax, int radius) {
 	}
 }
 
-void bolt(char **canvas, int **resistance, int **sky, int xmax, int ymax, int x, int y, int len, int lastx, int lasty) {
+void bolt(char **canvas, int **resistance, int **sky, int xmax, int ymax,
+		int x, int y, int len, int lastx, int lasty) {
 	do {
 		// pick the path(s) of least resistance
 		int m = RESISTANCE_MAX;
@@ -107,7 +108,10 @@ void bolt(char **canvas, int **resistance, int **sky, int xmax, int ymax, int x,
 				}
 
 				if (r < 2) {
-					bolt(canvas, resistance, sky, xmax, ymax, i, j, len / 2, x, y);
+					bolt(canvas, resistance, sky,
+							xmax, ymax, i, j,
+							len / 2,
+							x, y);
 				}
 			}
 		}
@@ -190,6 +194,7 @@ int main(int argc, char **argv) {
 	wclear(blank);
 	wclear(bolt);
 
+	// Write lightning bolts to window
 	for (int i = 0; i < xmax; ++i) {
 		for (int j = 0; j < ymax; ++j) {
 			char c = canvas[i][j];
@@ -224,6 +229,7 @@ int main(int argc, char **argv) {
 	}
 	wmove(bolt, 0, 0);
 
+	// Display the windows
 	int flashes = 2 + rand() % 6;
 	for (int i = 0; i < flashes; ++i) {
 		int on = 10000 + (rand() % (100 * 1000));
@@ -236,9 +242,11 @@ int main(int argc, char **argv) {
 		usleep(off);
 	}
 
+	// Wait for input
 	wtimeout(blank, 1000);
 	wgetch(blank);
 
+	// Clean up
 	delwin(bolt);
 	delwin(blank);
 
