@@ -54,6 +54,21 @@ unsigned get_direction(int x, int y) {
 	return dir;
 }
 
+void color_sky(int **sky, int x, int y, int xmax, int ymax, int radius) {
+	for (int i = x - radius; i < x + radius; ++i) {
+		if (i < 0 || i >= xmax) {
+			return;
+		}
+
+		for (int j = y - radius; j < y + radius; ++j) {
+			if (j < 0 || j >= ymax) {
+				return;
+			}
+			sky[i][j] = sky[i][j] + 1;
+		}
+	}
+}
+
 void bolt(char **canvas, int **resistance, int **sky, int xmax, int ymax, int x, int y, int len, int lastx, int lasty) {
 	do {
 		// pick the path(s) of least resistance
@@ -101,18 +116,7 @@ void bolt(char **canvas, int **resistance, int **sky, int xmax, int ymax, int x,
 		if (canvas[x][y] == ' ') {
 			canvas[x][y] = c;
 
-			for (int i = x - 3; i < x + 3; ++i) {
-				if (i < 0 || i >= xmax) {
-					return;
-				}
-
-				for (int j = y - 3; j < y + 3; ++j) {
-					if (j < 0 || j >= ymax) {
-						return;
-					}
-					sky[i][j] = sky[i][j] + 1;
-				}
-			}
+			color_sky(sky, x, y, xmax, ymax, 3 /* radius */);
 		}
 		lastx = x;
 		lasty = y;
@@ -176,8 +180,8 @@ int main(int argc, char **argv) {
 	int len = rand() % (xmax * ymax);
 
 	// Create a lightning bolt
-	bolt(canvas, resistance, sky, xmax, ymax, x0, y0, len, -1 /* lastx */, -1
-			/* lasty */);
+	bolt(canvas, resistance, sky, xmax, ymax, x0, y0, len,
+			-1 /* lastx */, -1 /* lasty */);
 
 	WINDOW *bolt;
 	WINDOW *blank;
@@ -191,11 +195,9 @@ int main(int argc, char **argv) {
 			char c = canvas[i][j];
 			if (c != ' ') {
 				// TODO DCB check if colorful
-				wattron(bolt, COLOR_PAIR(BOLT_PAIR));
-				wattron(bolt, A_BOLD);
+				wattron(bolt, COLOR_PAIR(BOLT_PAIR) | A_BOLD);
 				mvwaddch(bolt, j, i, c);
-				wattroff(bolt, A_BOLD);
-				wattroff(bolt, COLOR_PAIR(BOLT_PAIR));
+				wattroff(bolt, COLOR_PAIR(BOLT_PAIR) | A_BOLD);
 			} else {
 				int brightness = sky[i][j];
 				wattron(bolt, A_DIM);
@@ -236,7 +238,6 @@ int main(int argc, char **argv) {
 
 	wtimeout(blank, 1000);
 	wgetch(blank);
-
 
 	delwin(bolt);
 	delwin(blank);
