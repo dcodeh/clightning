@@ -54,6 +54,42 @@ unsigned get_direction(int x, int y) {
 	return dir;
 }
 
+void bolt_to_window(WINDOW *w, char **canvas, int **sky, int xmax, int ymax) {
+	for (int i = 0; i < xmax; ++i) {
+		for (int j = 0; j < ymax; ++j) {
+			char c = canvas[i][j];
+			if (c != ' ') {
+				// TODO DCB check if colorful
+				wattron(w, COLOR_PAIR(BOLT_PAIR) | A_BOLD);
+				mvwaddch(w, j, i, c);
+				wattroff(w, COLOR_PAIR(BOLT_PAIR) | A_BOLD);
+			} else {
+				int brightness = sky[i][j];
+				wattron(w, A_DIM);
+				if (brightness > 8) {
+					wattron(w, COLOR_PAIR(INTENSE_GLOW_PAIR));
+					mvwaddch(w, j, i, '@');
+					wattroff(w, COLOR_PAIR(INTENSE_GLOW_PAIR));
+				} else if (brightness >= 4) {
+					wattron(w, COLOR_PAIR(MEDIUM_GLOW_PAIR));
+					mvwaddch(w, j, i, '*');
+					wattroff(w, COLOR_PAIR(MEDIUM_GLOW_PAIR));
+				} else if (brightness >= 2) {
+					wattron(w, COLOR_PAIR(LOW_GLOW_PAIR));
+					mvwaddch(w, j, i, '.');
+					wattroff(w, COLOR_PAIR(LOW_GLOW_PAIR));
+				} else {
+					wattron(w, COLOR_PAIR(NO_GLOW_PAIR));
+					mvwaddch(w, j, i, ' ');
+					wattroff(w, COLOR_PAIR(NO_GLOW_PAIR));
+				}
+				wattroff(w, A_DIM);
+			}
+		}
+	}
+	wmove(w, 0, 0);
+}
+
 void color_sky(int **sky, int x, int y, int xmax, int ymax, int radius) {
 	for (int i = x - radius; i < x + radius; ++i) {
 		if (i < 0 || i >= xmax) {
@@ -194,40 +230,8 @@ int main(int argc, char **argv) {
 	wclear(blank);
 	wclear(bolt);
 
-	// Write lightning bolts to window
-	for (int i = 0; i < xmax; ++i) {
-		for (int j = 0; j < ymax; ++j) {
-			char c = canvas[i][j];
-			if (c != ' ') {
-				// TODO DCB check if colorful
-				wattron(bolt, COLOR_PAIR(BOLT_PAIR) | A_BOLD);
-				mvwaddch(bolt, j, i, c);
-				wattroff(bolt, COLOR_PAIR(BOLT_PAIR) | A_BOLD);
-			} else {
-				int brightness = sky[i][j];
-				wattron(bolt, A_DIM);
-				if (brightness > 8) {
-					wattron(bolt, COLOR_PAIR(INTENSE_GLOW_PAIR));
-					mvwaddch(bolt, j, i, '@');
-					wattroff(bolt, COLOR_PAIR(INTENSE_GLOW_PAIR));
-				} else if (brightness >= 4) {
-					wattron(bolt, COLOR_PAIR(MEDIUM_GLOW_PAIR));
-					mvwaddch(bolt, j, i, '*');
-					wattroff(bolt, COLOR_PAIR(MEDIUM_GLOW_PAIR));
-				} else if (brightness >= 2) {
-					wattron(bolt, COLOR_PAIR(LOW_GLOW_PAIR));
-					mvwaddch(bolt, j, i, '.');
-					wattroff(bolt, COLOR_PAIR(LOW_GLOW_PAIR));
-				} else {
-					wattron(bolt, COLOR_PAIR(NO_GLOW_PAIR));
-					mvwaddch(bolt, j, i, ' ');
-					wattroff(bolt, COLOR_PAIR(NO_GLOW_PAIR));
-				}
-				wattroff(bolt, A_DIM);
-			}
-		}
-	}
-	wmove(bolt, 0, 0);
+	// Write lightning bolt to window
+	bolt_to_window(bolt, canvas, sky, xmax, ymax);
 
 	// Display the windows
 	int flashes = 2 + rand() % 6;
