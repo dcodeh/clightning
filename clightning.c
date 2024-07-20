@@ -180,39 +180,37 @@ int main(int argc, char **argv) {
 	wclear(blank);
 	wclear(bolt);
 
-	for (int i = 0; i < 3; ++i) {
-		for (int i = 0; i < x; ++i) {
-			for (int j = 0; j < y; ++j) {
-				char c = canvas[i][j];
-				if (c != ' ') {
-					// TODO DCB check if colorful
-					wattron(bolt, COLOR_PAIR(BOLT_PAIR));
-					wattron(bolt, A_BOLD);
-					mvwaddch(bolt, j, i, c);
-					wattroff(bolt, A_BOLD);
-					wattroff(bolt, COLOR_PAIR(BOLT_PAIR));
+	for (int i = 0; i < x; ++i) {
+		for (int j = 0; j < y; ++j) {
+			char c = canvas[i][j];
+			if (c != ' ') {
+				// TODO DCB check if colorful
+				wattron(bolt, COLOR_PAIR(BOLT_PAIR));
+				wattron(bolt, A_BOLD);
+				mvwaddch(bolt, j, i, c);
+				wattroff(bolt, A_BOLD);
+				wattroff(bolt, COLOR_PAIR(BOLT_PAIR));
+			} else {
+				int brightness = sky[i][j];
+				wattron(bolt, A_DIM);
+				if (brightness > 8) {
+					wattron(bolt, COLOR_PAIR(INTENSE_GLOW_PAIR));
+					mvwaddch(bolt, j, i, '@');
+					wattroff(bolt, COLOR_PAIR(INTENSE_GLOW_PAIR));
+				} else if (brightness >= 4) {
+					wattron(bolt, COLOR_PAIR(MEDIUM_GLOW_PAIR));
+					mvwaddch(bolt, j, i, '*');
+					wattroff(bolt, COLOR_PAIR(MEDIUM_GLOW_PAIR));
+				} else if (brightness >= 2) {
+					wattron(bolt, COLOR_PAIR(LOW_GLOW_PAIR));
+					mvwaddch(bolt, j, i, '.');
+					wattroff(bolt, COLOR_PAIR(LOW_GLOW_PAIR));
 				} else {
-					int brightness = sky[i][j];
-					wattron(bolt, A_DIM);
-					if (brightness > 8) {
-						wattron(bolt, COLOR_PAIR(INTENSE_GLOW_PAIR));
-						mvwaddch(bolt, j, i, '@');
-						wattroff(bolt, COLOR_PAIR(INTENSE_GLOW_PAIR));
-					} else if (brightness >= 4) {
-						wattron(bolt, COLOR_PAIR(MEDIUM_GLOW_PAIR));
-						mvwaddch(bolt, j, i, '*');
-						wattroff(bolt, COLOR_PAIR(MEDIUM_GLOW_PAIR));
-					} else if (brightness >= 2) {
-						wattron(bolt, COLOR_PAIR(LOW_GLOW_PAIR));
-						mvwaddch(bolt, j, i, '.');
-						wattroff(bolt, COLOR_PAIR(LOW_GLOW_PAIR));
-					} else {
-						wattron(bolt, COLOR_PAIR(NO_GLOW_PAIR));
-						mvwaddch(bolt, j, i, ' ');
-						wattroff(bolt, COLOR_PAIR(NO_GLOW_PAIR));
-					}
-					wattroff(bolt, A_DIM);
+					wattron(bolt, COLOR_PAIR(NO_GLOW_PAIR));
+					mvwaddch(bolt, j, i, ' ');
+					wattroff(bolt, COLOR_PAIR(NO_GLOW_PAIR));
 				}
+				wattroff(bolt, A_DIM);
 			}
 		}
 	}
