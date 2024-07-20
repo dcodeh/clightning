@@ -17,12 +17,13 @@ enum color_pair {
 
 enum dir {
 	NONE = 0,
-	NORTH = 0x8,
-	EAST = 0x4,
-	SOUTH = 0x2,
 	WEST = 0x1,
+	SOUTH = 0x2,
+	EAST = 0x4,
+	NORTH = 0x8,
 };
 
+// A crappy lookup table
 static char chars[] = {
 	[NONE] = '*',
 	[SOUTH] = '|',
@@ -56,16 +57,18 @@ unsigned get_direction(int x, int y) {
 void bolt(char **canvas, int **resistance, int **sky, int xmax, int ymax, int x, int y, int len, int lastx, int lasty) {
 	do {
 		// pick the path(s) of least resistance
-		int m = RESISTANCE_MAX; // TODO DCB always larger than the highest resistance value
+		int m = RESISTANCE_MAX;
 		int xmin, ymin;
 
 		for (int i = x - 1; i < x + 1; ++i) {
 			if (i < 0 || i >= xmax) {
+				// skip out of bounds
 				return;
 			}
 
 			for (int j = y - 1; j < y + 1; ++j) {
 				if (j < 0 || j >= ymax) {
+					// skip out of bounds
 					return;
 				}
 
@@ -120,9 +123,10 @@ void bolt(char **canvas, int **resistance, int **sky, int xmax, int ymax, int x,
 }
 
 // possible options:
-// --color
-// --glow
+// --nocolor
+// --noglow
 // --storm
+// --noflash
 int main(int argc, char **argv) {
 	// Enter curses mode
 	initscr();
@@ -133,8 +137,8 @@ int main(int argc, char **argv) {
 	// Disable echoing input characters that could mess up the artwork
 	noecho();
 
+	// Initialize color pairs, if supported by this terminal
 	bool colorful = has_colors();
-	// TODO DCB does this terminal support color?
 	if (colorful) {
 		start_color();
 		init_pair(BOLT_PAIR, COLOR_WHITE, COLOR_BLACK);
@@ -144,44 +148,46 @@ int main(int argc, char **argv) {
 		init_pair(NO_GLOW_PAIR, COLOR_WHITE, COLOR_BLACK);
 	}
 
-
 	// Enquire about the size of the terminal we're dealing with
-	int x, y;
-	getmaxyx(stdscr, y, x);
+	int xmax, ymax;
+	getmaxyx(stdscr, ymax, xmax);
 
+	// Seed random generator with the current time
 	srand(time(NULL));
 
-	// TODO DCB clean up this hacky mess
-	char **canvas = malloc(x * sizeof(char *));
-	int **sky = malloc( x * sizeof(int *));
-	int **resistance = malloc(x * sizeof(int *));
-	for (int i = 0; i < x; ++i) {
-		canvas[i] = malloc(y * sizeof(char));
-		resistance[i] = malloc(y * sizeof(int));
-		sky[i] = malloc(y * sizeof(int));
-		memset(canvas[i], ' ', y);
-		memset(sky[i], 0, y);
-		for (int j = 0; j < y; ++j) {
+	// Acquire lots of memory
+	char **canvas = malloc(xmax * sizeof(char *));
+	int **sky = malloc(xmax * sizeof(int *));
+	int **resistance = malloc(xmax * sizeof(int *));
+	for (int i = 0; i < xmax; ++i) {
+		canvas[i] = malloc(ymax * sizeof(char));
+		resistance[i] = malloc(ymax * sizeof(int));
+		sky[i] = malloc(ymax * sizeof(int));
+		memset(canvas[i], ' ', ymax);
+		memset(sky[i], 0, ymax);
+		for (int j = 0; j < ymax; ++j) {
 			resistance[i][j] = rand() % RESISTANCE_MAX;
 		}
 	}
 
 	// pick a random spot to start in the middle 50% of the window
-	int x0 = (x / 4) + (rand() % (x / 2));
-	int y0 = (y / 4) + (rand() % (y / 2));
-	int len = rand() % (x * y);
+	int x0 = (xmax / 4) + (rand() % (xmax / 2));
+	int y0 = (ymax / 4) + (rand() % (ymax / 2));
+	int len = rand() % (xmax * ymax);
 
-	bolt(canvas, resistance, sky, x, y, x0, y0, len, -1 /* lastx */, -1 /* lasty */);
+	// Create a lightning bolt
+	bolt(canvas, resistance, sky, xmax, ymax, x0, y0, len, -1 /* lastx */, -1
+			/* lasty */);
 
 	WINDOW *bolt;
 	WINDOW *blank;
-	bolt = newwin(y, x, 0, /* starty */ 0 /* startx */);
-	blank = newwin(y, x, 0, /* starty */ 0 /* startx */);
+	bolt = newwin(ymax, xmax, 0, /* starty */ 0 /* startx */);
+	blank = newwin(ymax, xmax, 0, /* starty */ 0 /* startx */);
 	wclear(blank);
 	wclear(bolt);
 
-	for (int i = 0; i < x; ++i) {
-		for (int j = 0; j < y; ++j) {
+	for (int i = 0; i < xmax; ++i) {
+		for (int j = 0; j < ymax; ++j) {
 			char c = canvas[i][j];
 			if (c != ' ') {
 				// TODO DCB check if colorful
@@ -239,7 +245,7 @@ int main(int argc, char **argv) {
 	endwin();
 
 	// Hide the memory
-	for (int i = 0; i < x; ++i) {
+	for (int i = 0; i < xmax; ++i) {
 		free(canvas[i]);
 		free(resistance[i]);
 		free(sky[i]);
