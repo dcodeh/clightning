@@ -76,34 +76,31 @@ unsigned get_direction(int x, int y) {
 	return dir;
 }
 
+void w_put_char(WINDOW *w, int x, int y, char c, unsigned attribute) {
+	wattron(w, attribute);
+	mvwaddch(w, y, x, c);
+	wattroff(w, attribute);
+}
+
 void bolt_to_window(WINDOW *w, char **canvas, int **sky, int xmax, int ymax) {
 	for (int i = 0; i < xmax; ++i) {
 		for (int j = 0; j < ymax; ++j) {
 			char c = canvas[i][j];
 			if (c != ' ') {
-				// TODO DCB check if colorful
-				wattron(w, COLOR_PAIR(BOLT_PAIR) | A_BOLD);
-				mvwaddch(w, j, i, c);
-				wattroff(w, COLOR_PAIR(BOLT_PAIR) | A_BOLD);
+				w_put_char(w, i, j, c,
+						COLOR_PAIR(BOLT_PAIR) |
+						A_BOLD);
 			} else {
 				int brightness = sky[i][j];
 				wattron(w, A_DIM);
 				if (brightness > INTENSE_THRESHOLD) {
-					wattron(w, COLOR_PAIR(INTENSE_GLOW_PAIR));
-					mvwaddch(w, j, i, INTENSE_CHAR);
-					wattroff(w, COLOR_PAIR(INTENSE_GLOW_PAIR));
+					w_put_char(w, i, j, INTENSE_CHAR, COLOR_PAIR(INTENSE_GLOW_PAIR));
 				} else if (brightness >= MEDIUM_THRESHOLD) {
-					wattron(w, COLOR_PAIR(MEDIUM_GLOW_PAIR));
-					mvwaddch(w, j, i, MEDIUM_CHAR);
-					wattroff(w, COLOR_PAIR(MEDIUM_GLOW_PAIR));
+					w_put_char(w, i, j, MEDIUM_CHAR, COLOR_PAIR(MEDIUM_GLOW_PAIR));
 				} else if (brightness >= LOW_THRESHOLD) {
-					wattron(w, COLOR_PAIR(LOW_GLOW_PAIR));
-					mvwaddch(w, j, i, LOW_CHAR);
-					wattroff(w, COLOR_PAIR(LOW_GLOW_PAIR));
+					w_put_char(w, i, j, LOW_CHAR, COLOR_PAIR(LOW_GLOW_PAIR));
 				} else {
-					wattron(w, COLOR_PAIR(NO_GLOW_PAIR));
-					mvwaddch(w, j, i, ' ');
-					wattroff(w, COLOR_PAIR(NO_GLOW_PAIR));
+					w_put_char(w, i, j, ' ', COLOR_PAIR(NO_GLOW_PAIR));
 				}
 				wattroff(w, A_DIM);
 			}
