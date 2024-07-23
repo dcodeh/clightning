@@ -82,28 +82,43 @@ void w_put_char(WINDOW *w, int x, int y, char c, unsigned attribute) {
 	wattroff(w, attribute);
 }
 
-void bolt_to_window(WINDOW *w, char **canvas, int **sky, int xmax, int ymax) {
+void bolt_to_window(WINDOW *w, char **canvas, int **sky, int xmax, int ymax, bool colorful) {
 	for (int i = 0; i < xmax; ++i) {
 		for (int j = 0; j < ymax; ++j) {
 			char c = canvas[i][j];
+			unsigned attribute = 0;
 			if (c != ' ') {
-				w_put_char(w, i, j, c,
-						COLOR_PAIR(BOLT_PAIR) |
-						A_BOLD);
+				attribute = A_BOLD;
+				if (colorful) {
+					attribute |= COLOR_PAIR(BOLT_PAIR);
+				}
 			} else {
 				int brightness = sky[i][j];
-				wattron(w, A_DIM);
+				attribute = A_DIM;
 				if (brightness > INTENSE_THRESHOLD) {
-					w_put_char(w, i, j, INTENSE_CHAR, COLOR_PAIR(INTENSE_GLOW_PAIR));
+					c = INTENSE_CHAR;
+					if (colorful) {
+						attribute |= COLOR_PAIR(INTENSE_GLOW_PAIR);
+					}
 				} else if (brightness >= MEDIUM_THRESHOLD) {
-					w_put_char(w, i, j, MEDIUM_CHAR, COLOR_PAIR(MEDIUM_GLOW_PAIR));
+					c = MEDIUM_CHAR;
+					if (colorful) {
+						attribute |= COLOR_PAIR(MEDIUM_GLOW_PAIR);
+					}
 				} else if (brightness >= LOW_THRESHOLD) {
-					w_put_char(w, i, j, LOW_CHAR, COLOR_PAIR(LOW_GLOW_PAIR));
+					c = LOW_CHAR;
+					if (colorful) {
+						attribute |= COLOR_PAIR(LOW_GLOW_PAIR);
+					}
 				} else {
-					w_put_char(w, i, j, ' ', COLOR_PAIR(NO_GLOW_PAIR));
+					c = ' ';
+					if (colorful) {
+						attribute |= COLOR_PAIR(NO_GLOW_PAIR);
+					}
 				}
-				wattroff(w, A_DIM);
 			}
+
+			w_put_char(w, i, j, c, attribute);
 		}
 	}
 	wmove(w, 0, 0);
@@ -250,7 +265,7 @@ int main(int argc, char **argv) {
 	wclear(bolt);
 
 	// Write lightning bolt to window
-	bolt_to_window(bolt, canvas, sky, xmax, ymax);
+	bolt_to_window(bolt, canvas, sky, xmax, ymax, colorful);
 
 	// Display the windows
 	int flashes = MIN_FLASHES + rand() % MAX_FLASHES;
