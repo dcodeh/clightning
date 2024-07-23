@@ -96,6 +96,7 @@ void bolt_to_window(WINDOW *w, char **canvas, int **sky, int xmax, int ymax, con
 	for (int i = 0; i < xmax; ++i) {
 		for (int j = 0; j < ymax; ++j) {
 			char c = canvas[i][j];
+			int brightness = sky[i][j];
 			unsigned attribute = 0;
 			if (c != ' ') {
 				attribute = A_BOLD;
@@ -103,7 +104,6 @@ void bolt_to_window(WINDOW *w, char **canvas, int **sky, int xmax, int ymax, con
 					attribute |= COLOR_PAIR(BOLT_PAIR);
 				}
 			} else if (!opts->noglow) {
-				int brightness = sky[i][j];
 				attribute = A_DIM;
 				if (brightness > INTENSE_THRESHOLD) {
 					c = INTENSE_CHAR;
