@@ -5,6 +5,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#define TIMEOUT_NEVER -1
+#define ARG_LEN_MAX 12
 #define RESISTANCE_MAX 10
 #define RECURSION_RESISTANCE 2
 #define GLOW_RADIUS 3
@@ -28,6 +30,13 @@
 #define MEDIUM_CHAR  '*'
 #define LOW_THRESHOLD 2
 #define LOW_CHAR '.'
+
+struct options {
+	bool nocolor;
+	bool noglow;
+	bool storm;
+	bool noflash;
+};
 
 enum color_pair {
 	BOLT_PAIR = 1,
@@ -82,7 +91,8 @@ void w_put_char(WINDOW *w, int x, int y, char c, unsigned attribute) {
 	wattroff(w, attribute);
 }
 
-void bolt_to_window(WINDOW *w, char **canvas, int **sky, int xmax, int ymax, bool colorful) {
+void bolt_to_window(WINDOW *w, char **canvas, int **sky, int xmax, int ymax, const struct options *opts) {
+	bool colorful = !opts->nocolor;
 	for (int i = 0; i < xmax; ++i) {
 		for (int j = 0; j < ymax; ++j) {
 			char c = canvas[i][j];
@@ -92,7 +102,7 @@ void bolt_to_window(WINDOW *w, char **canvas, int **sky, int xmax, int ymax, boo
 				if (colorful) {
 					attribute |= COLOR_PAIR(BOLT_PAIR);
 				}
-			} else {
+			} else if (!opts->noglow) {
 				int brightness = sky[i][j];
 				attribute = A_DIM;
 				if (brightness > INTENSE_THRESHOLD) {
@@ -200,12 +210,47 @@ void bolt(char **canvas, int **resistance, int **sky, int xmax, int ymax,
 	} while (len > 0);
 }
 
-// possible options:
-// --nocolor
-// --noglow
-// --storm
-// --noflash
+void print_usage(void) {
+	printf("Usage: ./clightning [options]\n"
+			"\nDisplay lightning bolts in your terminal.\n"
+			"\t--nocolor: disable color output\n"
+			"\t--noglow:  disable lightning bolt glow\n"
+			"\t--storm:   generate bolts until terminated\n"
+			"\t--noflash: lightning bolts don't flicker\n");
+}
+
+int parse_args(int argc, char **argv, struct options *opts) {
+	if (!opts) {
+		// bad programmer
+		return -1;
+	}
+
+	int unknown_args = 0;
+	for (int i = 1; i < argc; ++i) {
+		if (strncmp(argv[i], "--nocolor", ARG_LEN_MAX) == 0) {
+			opts->nocolor = true;
+		} else if (strncmp(argv[i], "--noglow", ARG_LEN_MAX) == 0) {
+			opts->noglow = true;
+		} else if (strncmp(argv[i], "--storm", ARG_LEN_MAX) == 0) {
+			opts->storm = true;
+		} else if (strncmp(argv[i], "--noflash", ARG_LEN_MAX) == 0) {
+			opts->noflash = true;
+		} else {
+			unknown_args++;
+			printf("Unsupported option: %s\n", argv[i]);
+		}
+	}
+
+	return unknown_args;
+}
+
 int main(int argc, char **argv) {
+	struct options opts = { 0 };
+	if (parse_args(argc, argv, &opts)) {
+		print_usage();
+		return EXIT_FAILURE;
+	}
+
 	// Enter curses mode
 	initscr();
 
@@ -216,7 +261,7 @@ int main(int argc, char **argv) {
 	noecho();
 
 	// Initialize color pairs, if supported by this terminal
-	bool colorful = has_colors();
+	bool colorful = has_colors() && !opts.nocolor;
 	if (colorful) {
 		start_color();
 		init_pair(BOLT_PAIR, COLOR_WHITE, COLOR_BLACK);
@@ -258,35 +303,41 @@ int main(int argc, char **argv) {
 			-1 /* lastx */, -1 /* lasty */);
 
 	WINDOW *bolt;
-	WINDOW *blank;
 	bolt = newwin(ymax, xmax, 0, /* starty */ 0 /* startx */);
-	blank = newwin(ymax, xmax, 0, /* starty */ 0 /* startx */);
-	wclear(blank);
 	wclear(bolt);
 
 	// Write lightning bolt to window
-	bolt_to_window(bolt, canvas, sky, xmax, ymax, colorful);
+	bolt_to_window(bolt, canvas, sky, xmax, ymax, &opts);
 
 	// Display the windows
-	int flashes = MIN_FLASHES + rand() % MAX_FLASHES;
-	for (int i = 0; i < flashes; ++i) {
-		int on = FLASH_ON_MIN + (rand() % (FLASH_ON_MAX));
-		int off = FLASH_OFF_MIN + (rand() % (FLASH_OFF_MAX));
+	if (opts.noflash) {
+		wtimeout(bolt, TIMEOUT_NEVER);
 		redrawwin(bolt);
 		wrefresh(bolt);
-		usleep(on);
-		redrawwin(blank);
-		wrefresh(blank);
-		usleep(off);
+		wgetch(bolt);
+	} else {
+		WINDOW *blank;
+		blank = newwin(ymax, xmax, 0, /* starty */ 0 /* startx */);
+		wtimeout(blank, INPUT_TIMEOUT);
+		wclear(blank);
+		int flashes = MIN_FLASHES + rand() % MAX_FLASHES;
+		for (int i = 0; i < flashes; ++i) {
+			int on = FLASH_ON_MIN + (rand() % (FLASH_ON_MAX));
+			int off = FLASH_OFF_MIN + (rand() % (FLASH_OFF_MAX));
+			redrawwin(bolt);
+			wrefresh(bolt);
+			usleep(on);
+			redrawwin(blank);
+			wrefresh(blank);
+			usleep(off);
+		}
+		// Wait for input
+		wgetch(blank);
+		delwin(blank);
 	}
-
-	// Wait for input
-	wtimeout(blank, INPUT_TIMEOUT);
-	wgetch(blank);
 
 	// Clean up
 	delwin(bolt);
-	delwin(blank);
 
 	// Exit curses mode
 	endwin();
