@@ -215,7 +215,7 @@ void print_usage(void) {
 			"\nDisplay lightning bolts in your terminal.\n"
 			"\t--nocolor: disable color output\n"
 			"\t--noglow:  disable lightning bolt glow\n"
-			"\t--storm:   generate bolts until terminated\n"
+			"\t--storm:   generate bolts until terminated; q to quit\n"
 			"\t--noflash: lightning bolts don't flicker\n");
 }
 
@@ -278,79 +278,82 @@ int main(int argc, char **argv) {
 	// Seed random generator with the current time
 	srand(time(NULL));
 
-	// Acquire lots of memory
-	char **canvas = malloc(xmax * sizeof(char *));
-	int **sky = malloc(xmax * sizeof(int *));
-	int **resistance = malloc(xmax * sizeof(int *));
-	for (int i = 0; i < xmax; ++i) {
-		canvas[i] = malloc(ymax * sizeof(char));
-		resistance[i] = malloc(ymax * sizeof(int));
-		sky[i] = malloc(ymax * sizeof(int));
-		memset(canvas[i], ' ', ymax);
-		memset(sky[i], 0, ymax);
-		for (int j = 0; j < ymax; ++j) {
-			resistance[i][j] = rand() % RESISTANCE_MAX;
+	int key = 0;
+	do {
+		// Acquire lots of memory
+		char **canvas = malloc(xmax * sizeof(char *));
+		int **sky = malloc(xmax * sizeof(int *));
+		int **resistance = malloc(xmax * sizeof(int *));
+		for (int i = 0; i < xmax; ++i) {
+			canvas[i] = malloc(ymax * sizeof(char));
+			resistance[i] = malloc(ymax * sizeof(int));
+			sky[i] = malloc(ymax * sizeof(int));
+			memset(canvas[i], ' ', ymax);
+			memset(sky[i], 0, ymax);
+			for (int j = 0; j < ymax; ++j) {
+				resistance[i][j] = rand() % RESISTANCE_MAX;
+			}
 		}
-	}
 
-	// pick a random spot to start in the middle 50% of the window
-	int x0 = (xmax / 4) + (rand() % (xmax / 2));
-	int y0 = (ymax / 4) + (rand() % (ymax / 2));
-	int len = rand() % (xmax * ymax);
+		// pick a random spot to start in the middle 50% of the window
+		int x0 = (xmax / 4) + (rand() % (xmax / 2));
+		int y0 = (ymax / 4) + (rand() % (ymax / 2));
+		int len = rand() % (xmax * ymax);
 
-	// Create a lightning bolt
-	bolt(canvas, resistance, sky, xmax, ymax, x0, y0, len,
-			-1 /* lastx */, -1 /* lasty */);
+		// Create a lightning bolt
+		bolt(canvas, resistance, sky, xmax, ymax, x0, y0, len,
+				-1 /* lastx */, -1 /* lasty */);
 
-	WINDOW *bolt;
-	bolt = newwin(ymax, xmax, 0, /* starty */ 0 /* startx */);
-	wclear(bolt);
+		WINDOW *bolt;
+		bolt = newwin(ymax, xmax, 0, /* starty */ 0 /* startx */);
+		wclear(bolt);
 
-	// Write lightning bolt to window
-	bolt_to_window(bolt, canvas, sky, xmax, ymax, &opts);
+		// Write lightning bolt to window
+		bolt_to_window(bolt, canvas, sky, xmax, ymax, &opts);
 
-	// Display the windows
-	if (opts.noflash) {
-		wtimeout(bolt, TIMEOUT_NEVER);
-		redrawwin(bolt);
-		wrefresh(bolt);
-		wgetch(bolt);
-	} else {
-		WINDOW *blank;
-		blank = newwin(ymax, xmax, 0, /* starty */ 0 /* startx */);
-		wtimeout(blank, INPUT_TIMEOUT);
-		wclear(blank);
-		int flashes = MIN_FLASHES + rand() % MAX_FLASHES;
-		for (int i = 0; i < flashes; ++i) {
-			int on = FLASH_ON_MIN + (rand() % (FLASH_ON_MAX));
-			int off = FLASH_OFF_MIN + (rand() % (FLASH_OFF_MAX));
+		// Display the windows
+		if (opts.noflash) {
+			wtimeout(bolt, TIMEOUT_NEVER);
 			redrawwin(bolt);
 			wrefresh(bolt);
-			usleep(on);
-			redrawwin(blank);
-			wrefresh(blank);
-			usleep(off);
+			key = wgetch(bolt);
+		} else {
+			WINDOW *blank;
+			blank = newwin(ymax, xmax, 0, /* starty */ 0 /* startx */);
+			wtimeout(blank, INPUT_TIMEOUT);
+			wclear(blank);
+			int flashes = MIN_FLASHES + rand() % MAX_FLASHES;
+			for (int i = 0; i < flashes; ++i) {
+				int on = FLASH_ON_MIN + (rand() % (FLASH_ON_MAX));
+				int off = FLASH_OFF_MIN + (rand() % (FLASH_OFF_MAX));
+				redrawwin(bolt);
+				wrefresh(bolt);
+				usleep(on);
+				redrawwin(blank);
+				wrefresh(blank);
+				usleep(off);
+			}
+			// Wait for input
+			key = wgetch(blank);
+			delwin(blank);
 		}
-		// Wait for input
-		wgetch(blank);
-		delwin(blank);
-	}
 
-	// Clean up
-	delwin(bolt);
+		// Clean up
+		delwin(bolt);
+
+		// Hide the memory
+		for (int i = 0; i < xmax; ++i) {
+			free(canvas[i]);
+			free(resistance[i]);
+			free(sky[i]);
+		}
+		free(canvas);
+		free(resistance);
+		free(sky);
+	} while (opts.storm && key != 'q');
 
 	// Exit curses mode
 	endwin();
-
-	// Hide the memory
-	for (int i = 0; i < xmax; ++i) {
-		free(canvas[i]);
-		free(resistance[i]);
-		free(sky[i]);
-	}
-	free(canvas);
-	free(resistance);
-	free(sky);
 
 	return 0;
 }
