@@ -287,9 +287,8 @@ int main(int argc, char **argv) {
 		for (int i = 0; i < xmax; ++i) {
 			canvas[i] = malloc(ymax * sizeof(char));
 			resistance[i] = malloc(ymax * sizeof(int));
-			sky[i] = malloc(ymax * sizeof(int));
+			sky[i] = calloc(ymax, sizeof(int));
 			memset(canvas[i], ' ', ymax);
-			memset(sky[i], 0, ymax);
 			for (int j = 0; j < ymax; ++j) {
 				resistance[i][j] = rand() % RESISTANCE_MAX;
 			}
