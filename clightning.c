@@ -280,6 +280,8 @@ int main(int argc, char **argv) {
 
 	int key = 0;
 	do {
+		clear();
+
 		// Acquire lots of memory
 		char **canvas = malloc(xmax * sizeof(char *));
 		int **sky = malloc(xmax * sizeof(int *));
@@ -334,10 +336,12 @@ int main(int argc, char **argv) {
 			}
 			// Wait for input
 			key = wgetch(blank);
+			wclear(blank);
 			delwin(blank);
 		}
 
 		// Clean up
+		wclear(bolt);
 		delwin(bolt);
 
 		// Hide the memory
