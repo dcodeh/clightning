@@ -185,6 +185,11 @@ void bolt(char **canvas, int **resistance, int **sky, int xmax, int ymax,
 					m = r;
 					xmin = i;
 					ymin = j;
+				} else if (r == m) {
+					if (rand() % 2 == 0) {
+						xmin = i;
+						ymin = j;
+					}
 				}
 
 				if (r < RECURSION_RESISTANCE) {
